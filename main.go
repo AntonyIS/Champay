@@ -1,8 +1,8 @@
 package main
 
-import "fmt"
+import "github.com/AntonyIS/Champay/routes"
 
 func main() {
-	fmt.Println("Welcome to Champay application")
-	fmt.Println("Join a group and make monthly contribution")
+	// Call the route handler to handler request
+	routes.RouteHandler()
 }
