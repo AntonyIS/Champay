@@ -10,8 +10,9 @@ import (
 // Initializes route handler, and the server on port 8000
 func RouteHandler() {
 	router := gin.Default()
-	router.GET("/api/v1/users", GetUsers)   // Get all users
-	router.GET("/api/v1/groups", GetGroups) // Get all groups
+	router.GET("/api/v1/users", GetUsers)        // Get all users
+	router.GET("/api/v1/users/:id", GetUserByID) // Get user with user id
+	router.GET("/api/v1/groups", GetGroups)      // Get all groups
 
 	// Run the server on port 8000
 	router.Run(":8000")
@@ -29,6 +30,7 @@ func GetUsers(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, users)
 }
 
+// Get a single user with a given user id
 func GetUserByID(context *gin.Context) {
 	// initialize user
 	var user models.User
