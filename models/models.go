@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/jinzhu/gorm"
@@ -18,10 +17,10 @@ type User struct {
 	FirstName  string  `json:"firstname"`
 	LastName   string  `json:"lastname"`
 	Email      string  `json:"email"`
-	Phone      uint    `json:"phone"`
+	Phone      string  `json:"phone"`
 	Amount     float64 `json:"amount"`
-	NationalId uint    `json:"nationalId"`
-	GroupID    uint    `json:"groupId"`
+	NationalId string  `json:"nationalId"`
+	GroupID    string  `json:"groupId"`
 }
 
 type Group struct {
@@ -33,7 +32,7 @@ type Group struct {
 }
 
 // Initilize the database and prep database tables
-func InitDB() {
+func Setup() {
 	godotenv.Load(".env")
 	var (
 		dialect  = os.Getenv("DIALECT")
@@ -43,33 +42,21 @@ func InitDB() {
 		dbname   = os.Getenv("DB_NAME")
 		password = os.Getenv("DB_PASSWORD")
 	)
-	// Connection link to the database
-	db_connection := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", host, port, user, dbname, password)
 
-	// Execute database connection
-	DB, err := gorm.Open(dialect, db_connection)
+	// Connection string to the data
+	conn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", host, port, user, dbname, password)
 
+	// // Execute database connection
+	DB, err = gorm.Open(dialect, conn)
+
+	// // Check if connection to database has error or issues
 	if err != nil {
-		log.Fatalf("Error connecting to the database %s", error.Error(err))
+		fmt.Println(err)
+		panic("Failed to connect to the database")
 	}
 
-	// Migrations
+	// Create a Items table in the database if it does exists
 	DB.AutoMigrate(&User{})
 	DB.AutoMigrate(&Group{})
-
+	// // Setup database connection
 }
-
-// var Groups = []Group{
-// 	{Id: 1, GroupName: "TwawezaGroup", Contribution: 0, Amount: 0},
-// 	{Id: 2, GroupName: "Chama kuu", Contribution: 0, Amount: 0},
-// 	{Id: 3, GroupName: "Tusonge", Contribution: 0, Amount: 0},
-// }
-
-// var Users = []User{
-// 	{Id: 1, FirstName: "Antony", LastName: "Injila", Email: "antonyshikubu@gmail.com", Phone: 723308900, Amount: 50000, NationalId: 89786745, GroupID: 1},
-// 	{Id: 1, FirstName: "Lilian", LastName: "Ts", Email: "lilian@gmail.com", Phone: 723308900, Amount: 50000, NationalId: 89786745, GroupID: 1},
-// 	{Id: 1, FirstName: "Brian", LastName: "Aliwa", Email: "al@gmail.com", Phone: 7236709900, Amount: 100000, NationalId: 69786745, GroupID: 2},
-// 	{Id: 1, FirstName: "Elon", LastName: "Musk", Email: "elon@gmail.com", Phone: 723308900, Amount: 100000, NationalId: 89346745, GroupID: 2},
-// 	{Id: 1, FirstName: "Edith", LastName: "Ay", Email: "ay@gmail.com", Phone: 723308900, Amount: 20000, NationalId: 89786745, GroupID: 3},
-// 	{Id: 1, FirstName: "Lavin", LastName: "Wi", Email: "wi@gmail.com", Phone: 723308900, Amount: 20000, NationalId: 89700745, GroupID: 3},
-// }
