@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/AntonyIS/Champay/models"
@@ -68,7 +69,7 @@ func UpdateUser(ctx *gin.Context) {
 	var updateUser models.User
 	// Bind incoming request data with updateUser
 	if err := ctx.BindJSON(&updateUser); err != nil {
-		fmt.Println("Error bindig user")
+		log.Fatalf("Error ::: %v", err)
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{
 			"message": "Request body is not in the right format",
 		})
@@ -77,6 +78,7 @@ func UpdateUser(ctx *gin.Context) {
 
 	// Check if firstname, lastname, email and phone fields are not empty fields
 	if updateUser.FirstName == "" && updateUser.LastName == "" && updateUser.Email == "" && updateUser.Phone == "" {
+		log.Fatal("Error ::: Invalid user data")
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{
 			"message": "firstname, lastname, email and phone fields are empty",
 		})
