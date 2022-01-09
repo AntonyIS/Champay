@@ -1,7 +1,9 @@
 package models
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/jinzhu/gorm"
@@ -29,6 +31,72 @@ type Group struct {
 	Contribution float64 `json:"contribution"`
 	Amount       float64 `json:"amount"`
 	Users        *[]User `json:"users"`
+}
+
+func (*User) GetUsers() []User {
+	var users []User
+	DB.Find(&users)
+	return users
+}
+
+func (*User) GetUser(userID string) User {
+	var user User
+	DB.Find(&user, userID)
+	return user
+}
+
+func (usr *User) UpdateUser(userData User) (User, error) {
+	// Receives payload from client, validate and update the data
+
+	// Initilize user
+	var user User
+	// Get user ID from the request
+	userID := usr.ID
+	// Get user from the database and bind with initialized user
+	DB.Find(&user, userID)
+
+	// Check if firstname, lastname, email and phone fields are not empty fields
+	if userData.FirstName == "" && userData.LastName == "" && userData.Email == "" && userData.Phone == "" {
+		log.Fatal("Error ::: Invalid user data")
+		return User{}, errors.New("Invalid data")
+	}
+
+	// Update user
+	user.FirstName = userData.FirstName
+	user.LastName = userData.LastName
+	user.Email = userData.Email
+	user.Phone = userData.Phone
+	user.Amount = userData.Amount
+	user.NationalId = userData.NationalId
+	user.GroupID = userData.GroupID
+
+	// Save user into the database
+	DB.Save(&user)
+
+	// Return the updated user
+	return user, nil
+}
+
+func (usr *User) CreateUser() (User, error) {
+	// Receives data from client and stores the data into the database
+	// Returns new user to client
+	// Add user into the database
+	DB.Create(&usr)
+	// Return user data to the client: All users can be returned as well
+	return *usr, nil
+}
+
+func (usr *User) DeleteUser() (string, error) {
+	// Deletes user with id from the database
+	// Returns successful message
+
+	// Initialize user
+	var deleteUser User
+	// Get id of user to be deleted from the request
+	// Delete user from the database
+	DB.Delete(&deleteUser, usr.ID)
+
+	return "User deleted successfuly", nil
 }
 
 // Initilize the database and prep database tables

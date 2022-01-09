@@ -14,8 +14,8 @@ import (
 // Returns all users to the caller : READ
 func GetUsers(ctx *gin.Context) {
 	// Return all users in the database table
-	// Initialize users: gets assigned all users fron the database
-	var users []models.User
+	var userModel models.User
+	users := userModel.GetUsers()
 	// Pull users from the users tables
 	models.DB.Find(&users)
 	// returns users to the caller
@@ -24,12 +24,12 @@ func GetUsers(ctx *gin.Context) {
 
 // Get a single user with a given user id : READ
 func GetUserByID(ctx *gin.Context) {
-	// return user with the given id
-	// initialize user
-	var user models.User
+	// return user with the given id ,initialize user
+
 	// Get user id from the url
 	userID := ctx.Param("id")
-	// Pull user with userID from the database
+	var userModel models.User
+	user := userModel.GetUser(userID)
 	models.DB.Find(&user, userID)
 	ctx.IndentedJSON(http.StatusOK, user)
 }
@@ -44,11 +44,14 @@ func CreateUser(ctx *gin.Context) {
 	// Bind request data ti user variable
 	if err := ctx.BindJSON(&newUser); err != nil {
 		fmt.Printf("ERROR ::: %v\n", err)
+		ctx.IndentedJSON(http.StatusBadRequest, gin.H{
+			"message": "Invlaid user data",
+		})
 		return
 	}
 
 	// Add user into the database
-	models.DB.Create(&newUser)
+	newUser.CreateUser()
 	// Return user data to the client: All users can be returned as well
 	ctx.IndentedJSON(http.StatusCreated, newUser)
 }
@@ -76,29 +79,14 @@ func UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	// Check if firstname, lastname, email and phone fields are not empty fields
-	if updateUser.FirstName == "" && updateUser.LastName == "" && updateUser.Email == "" && updateUser.Phone == "" {
-		log.Fatal("Error ::: Invalid user data")
+	user, err := user.UpdateUser(updateUser)
+	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{
-			"message": "firstname, lastname, email and phone fields are empty",
+			"message": err,
 		})
 		return
 	}
-
-	// Update user
-	user.FirstName = updateUser.FirstName
-	user.LastName = updateUser.LastName
-	user.Email = updateUser.Email
-	user.Phone = updateUser.Phone
-	user.Amount = updateUser.Amount
-	user.NationalId = updateUser.NationalId
-	user.GroupID = updateUser.GroupID
-
-	// Save user into the database
-	models.DB.Save(&user)
-
-	// Return the updated user
-	ctx.IndentedJSON(http.StatusOK, user)
+	ctx.IndentedJSON(http.StatusBadRequest, user)
 
 }
 
@@ -110,12 +98,13 @@ func DeleteUser(ctx *gin.Context) {
 	// Initialize user
 	var deleteUser models.User
 	// Get id of user to be deleted from the request
-	userID := ctx.Param("id")
+	res, err := deleteUser.DeleteUser()
+	if err != nil {
+		ctx.IndentedJSON(http.StatusBadRequest, gin.H{
+			"message": err,
+		})
+		return
+	}
 
-	// Delete user from the database
-	models.DB.Delete(&deleteUser, userID)
-
-	ctx.IndentedJSON(http.StatusOK, gin.H{
-		"message": "User delete",
-	})
+	ctx.IndentedJSON(http.StatusOK, gin.H{"message": res})
 }
